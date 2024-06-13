@@ -37,13 +37,36 @@ html_ouput <- function(plot_obj, fname) {
   saveWidget(plot_obj, file = f, selfcontained = FALSE)
 }
 
+ggplot_theme <- theme(
+  axis.title.x = element_blank(),
+  plot.margin = PLOT_MARGIN,
+  panel.background = element_rect(fill = "#faf0e6", color = NA),
+  panel.grid.major = element_line(
+    linewidth = 0.5, linetype = 'solid', color = "#bdbbb8"
+    ), 
+  panel.grid.minor = element_blank(),
+  panel.grid.major.x = element_blank(),
+  plot.background = element_rect(fill = "#faf0e6", color = NA),
+  axis.ticks.x = element_line(color = "#bdbbb8"),
+  axis.ticks.y = element_blank(),
+  axis.line.x = element_line(color = "#bdbbb8"), 
+  axis.line.y = element_blank(),
+  legend.background = element_rect(fill = "#faf0e6", color = NA), 
+)
+
+y_scale <- list(
+  scale_y_continuous(limits = c(0,NA), expand = expansion(mult = c(0.0, .1)))
+)
+
 plotly_style <- function(p_obj) {
-  p_obj %>% layout(
-    title = list(font = TITLE_FNT),
-    xaxis = list(tickfont = AXIS_FNT),
-    yaxis = list(tickfont = AXIS_FNT, title = list(font = LABEL_FNT)),
-    legend = list(title = list(font = LABEL_FNT), font = AXIS_FNT)
-    )
+  p_obj %>% 
+    layout(
+      title = list(font = TITLE_FNT),
+      xaxis = list(tickfont = AXIS_FNT, fixedrange = TRUE),
+      yaxis = list(tickfont = AXIS_FNT, fixedrange = TRUE, title = list(font = LABEL_FNT)),
+      legend = list(title = list(font = LABEL_FNT), font = AXIS_FNT)
+    ) %>% 
+    config(displayModeBar = FALSE)
 }
 
 # ----------------------------------------
@@ -78,14 +101,10 @@ df_first_time_reg <- filter(
 p1 <- ggplot(data = df_first_time_reg) +
   geom_line(
     mapping = aes(x = date, y = value, color = `type of fuel`),
-    size = LINE_SIZE
+    linewidth = LINE_SIZE
     ) +
-  theme(
-    axis.title.x = element_blank(),
-    axis.title.y = element_text(margin = margin(r = 5, unit = "pt")),
-    plot.margin = PLOT_MARGIN,
-    legend.position='hidden'
-    ) + 
+  y_scale +
+  ggplot_theme +
   labs(
     title = "First time registered passenger cars by fuel type", 
     colour = "Type of fuel", 
@@ -94,25 +113,20 @@ p1 <- ggplot(data = df_first_time_reg) +
 p2 <- ggplot(data = df_first_time_reg) +
   geom_line(
     mapping = aes(x = date, y = `Share (%)`, color = `type of fuel`),
-    size = LINE_SIZE
+    linewidth = LINE_SIZE
     ) + 
-  theme(
-    axis.title.x = element_blank(), 
-    axis.title.y = element_text(margin = margin(r = 15, unit = "pt")),
-    plot.margin = PLOT_MARGIN,
-    legend.position='bottom'
-    ) + 
+  y_scale +
+  ggplot_theme +
   labs(colour = "Type of fuel", y="Percent of total (%)")
 
 first_time_reg_p <- subplot(
   ggplotly(p1, height = 400) %>% plotly_style(), 
   style(ggplotly(p2, height = 400) %>% plotly_style(), showlegend = FALSE),
   nrows = 2,
-  shareX = TRUE,
   titleY = TRUE
 )
 
-html_ouput(first_time_reg_p, "first_time_reg.html")
+html_ouput(first_time_reg_p, "first_time_reg_plot.html")
 # ----------------------------------------
 # GHG emissions from road traffic
 # ----------------------------------------
@@ -130,13 +144,16 @@ glimpse(df_ghg_vehicle_type)
 
 # merge the two df
 total <- rbind(df_ghg_road_traffic, df_ghg_vehicle_type)
+total <- total %>% 
+  rename(source = `source (activity)`)
 
 ghg_plot <- ggplot(data = total) +
   geom_line(
-    mapping = aes(x = year, y = value, color = `source (activity)`),
-    size = LINE_SIZE
+    mapping = aes(x = year, y = value, color = source),
+    linewidth = LINE_SIZE
   ) +
-  theme(axis.title.x = element_blank()) + 
+  y_scale +
+  ggplot_theme +
   labs(
     title = "Yearly emissions from road traffic, 2010-2023",
     colour = "Emission source", y="Emissions (1000 tonnes CO2e, AR5)") +
@@ -159,11 +176,8 @@ milage_plot <- ggplot(data = df_milage) +
     mapping = aes(x = year, y = value, color = `type of fuel`),
     linewidth = LINE_SIZE
   ) +
-  theme(
-    axis.title.x = element_blank(),
-    axis.text.x = element_text(size = 10),
-    axis.text.y = element_text(size = 10),
-    ) + 
+  y_scale +
+  ggplot_theme +
   labs(
     title = "Yearly distance, passenger cars by fuel type, 2010-2023", 
     colour = "Fuel type", y="Distance (million km)"
