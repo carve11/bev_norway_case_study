@@ -12,10 +12,7 @@ TITLE_FNT = list(size = 16)
 LABEL_FNT = list(size = 14)
 AXIS_FNT = list(size = 12)
 
-fpath_root <- "/Users/jonasgravekristensen/Documents/Kursus/Coursera" %>% 
-  paste("Google Data Analytics Certification", sep = "/") %>% 
-  paste("Course 8 - Capstone project", sep = "/")
-  
+fpath_root <- "."
 fpath_data <- paste(fpath_root, "data_capstone_project", sep = "/")
 fpath_template <- paste(fpath_root, "templates", sep = "/")
 
